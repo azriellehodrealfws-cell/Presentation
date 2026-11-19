@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stop the Bleeding: BPO RCA & SMART Action Planning</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for crisp operational icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            slateDark: '#0F172A',
+            slateCard: '#1E293B',
+            electric: '#2563EB',
+            amberOps: '#F59E0B',
+            emeraldOps: '#10B981',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom transitions & operational polish */
+    body {
+      background-color: #0F172A;
+      color: #F8FAFC;
+      overflow-x: hidden;
+    }
+
+    .slide-viewport {
+      perspective: 1200px;
+    }
+
+    .slide-card {
+      transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      animation: slideFadeIn 0.38s ease-out forwards;
+    }
+
+    @keyframes slideFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Custom Scrollbar for Speaker Notes & Grid */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0F172A;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Print optimization */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        color: #0F172A !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#0F172A] text-slate-100 select-none">
+
+  <!-- TOP OPERATIONAL CONTROL BAR -->
+  <header class="no-print w-full bg-slate-900/95 border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 z-30 backdrop-blur-md">
+    <!-- Brand / Title -->
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30">
+        <i class="fa-solid fa-crosshairs text-white text-base"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold tracking-tight text-sm sm:text-base text-white">BPO OPS EXCELLENCE</span>
+          <span class="hidden md:inline-block text-[11px] font-mono uppercase px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30">
+            TL & Supervisor Playbook
+          </span>
+        </div>
+        <p class="text-xs text-slate-400 hidden sm:block">Root Cause Analysis &amp; SMART Action Planning</p>
+      </div>
+    </div>
+
+    <!-- Interactive Tools: 10-Second Scan Timer, Speaker Notes Toggle, Overview Grid, Fullscreen -->
+    <div class="flex items-center gap-2 sm:gap-2.5">
+      <!-- 10-Second Rule Interactive Timer -->
+      <button id="scanTimerBtn" onclick="toggleScanTimer()" title="Test the 10-Second Scannability Rule on this slide"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition cursor-pointer">
+        <i class="fa-solid fa-stopwatch text-amber-400"></i>
+        <span id="scanTimerLabel">10s Scan Test</span>
+        <span id="scanTimerCount" class="font-mono font-bold text-amber-200 hidden">10.0s</span>
+      </button>
+
+      <!-- Speaker Notes Toggle -->
+      <button id="notesToggleBtn" onclick="toggleSpeakerNotes()"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border border-blue-500/40 bg-blue-600 text-white hover:bg-blue-500 transition shadow-sm cursor-pointer">
+        <i class="fa-solid fa-chalkboard-user"></i>
+        <span class="hidden sm:inline">Trainer Notes</span>
+      </button>
+
+      <!-- Overview Grid Mode -->
+      <button id="gridToggleBtn" onclick="toggleGridMode()" title="Slide Overview Grid"
+        class="p-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 transition cursor-pointer">
+        <i class="fa-solid fa-grip"></i>
+      </button>
+
+      <!-- Fullscreen Toggle -->
+      <button onclick="toggleFullscreen()" title="Toggle Fullscreen"
+        class="p-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 transition cursor-pointer">
+        <i class="fa-solid fa-expand"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- 10-SECOND PROGRESS BAR (Shows during 10s scan countdown) -->
+  <div id="scanProgressWrap" class="no-print w-full h-1.5 bg-slate-800 hidden overflow-hidden">
+    <div id="scanProgressBar" class="h-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 w-full transition-all duration-100"></div>
+  </div>
+
+  <!-- MAIN WORKSPACE: SLIDE STAGE + OPTIONAL SPEAKER NOTES DRAWER -->
+  <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+    <!-- SLIDE PRESENTATION STAGE -->
+    <section id="stageArea" class="flex-1 flex flex-col justify-between p-3 sm:p-6 lg:p-8 overflow-y-auto slide-viewport">
+
+      <!-- SLIDE CONTAINER (16:9 Executive Card) -->
+      <div class="w-full max-w-6xl mx-auto my-auto">
+        <div id="slideCanvas" class="slide-card w-full rounded-3xl shadow-2xl border border-slate-700/80 overflow-hidden bg-white text-slate-900 min-h-[500px] sm:min-h-[560px] flex flex-col justify-between">
+          <!-- Dynamic Slide Content Injected Here -->
+        </div>
+      </div>
+
+      <!-- BOTTOM NAVIGATION & SLIDE DOTS -->
+      <div class="no-print w-full max-w-6xl mx-auto mt-5 pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <!-- Slide Counter Badge -->
+        <div class="flex items-center gap-3">
+          <span id="slideCounter" class="font-mono text-xs sm:text-sm font-bold px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-200">
+            1 / 10
+          </span>
+          <span id="slideCategoryTag" class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Executive Kickoff
+          </span>
+        </div>
+
+        <!-- Clickable Progress Dots -->
+        <div id="slideDots" class="flex items-center gap-1.5 flex-wrap justify-center">
+          <!-- Dots injected via JS -->
+        </div>
+
+        <!-- Previous / Next Controls -->
+        <div class="flex items-center gap-2">
+          <button id="prevBtn" onclick="prevSlide()"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:pointer-events-none text-white border border-slate-700 flex items-center gap-2 transition cursor-pointer">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Prev</span>
+          </button>
+          <button id="nextBtn" onclick="nextSlide()"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-lg shadow-blue-600/25 flex items-center gap-2 transition cursor-pointer">
+            <span>Next</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPEAKER NOTES DRAWER (Side panel on large screens, bottom panel on mobile/tablet) -->
+    <aside id="speakerNotesPanel" class="no-print w-full lg:w-[390px] xl:w-[430px] bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col justify-between transition-all duration-300 max-h-[42vh] lg:max-h-none">
+      <div class="p-4 sm:p-5 overflow-y-auto flex-1">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+              <i class="fa-solid fa-microphone-lines text-sm"></i>
+            </span>
+            <div>
+              <h3 class="text-xs font-extrabold uppercase tracking-wider text-amber-400">Senior BPO Trainer Notes</h3>
+              <p class="text-[11px] text-slate-400">15+ Yrs Floor Delivery &bull; Conversational Script</p>
+            </div>
+          </div>
+          <button onclick="toggleSpeakerNotes()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition cursor-pointer" title="Close Notes">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Slide Delivery Cues -->
+        <div id="trainerCueBadge" class="mb-3 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs text-blue-300 flex items-center gap-2">
+          <i class="fa-solid fa-bolt text-amber-400"></i>
+          <span id="trainerCueText">Delivery Focus: Hook frontline leaders immediately.</span>
+        </div>
+
+        <!-- Conversational Script Body -->
+        <div id="speakerNotesBody" class="text-sm sm:text-[15px] leading-relaxed text-slate-200 space-y-3 font-normal">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Keyboard Shortcut Hint Footer -->
+      <div class="px-4 py-2.5 bg-slate-950/70 border-t border-slate-800/90 flex items-center justify-between text-[11px] text-slate-400">
+        <span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-300">←</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-300">→</kbd> or <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-300">Space</kbd> to navigate</span>
+        <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-eye mr-1"></i>&lt;10s Rule Active</span>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- OVERVIEW GRID MODAL -->
+  <div id="gridModal" class="no-print fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 hidden flex-col p-4 sm:p-8 overflow-y-auto">
+    <div class="max-w-6xl mx-auto w-full">
+      <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-800">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-white">Deck Overview &mdash; 10-Slide Structure</h2>
+          <p class="text-xs sm:text-sm text-slate-400">Click any slide card to jump directly to that module.</p>
+        </div>
+        <button onclick="toggleGridMode()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold border border-slate-700 cursor-pointer">
+          <i class="fa-solid fa-xmark mr-1.5"></i>Close Grid
+        </button>
+      </div>
+      <div id="gridContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Grid thumbnails populated via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERACTIVE PRESENTATION LOGIC -->
+  <script>
+    // State Variables
+    let currentSlideIndex = 0;
+    let speakerNotesOpen = true;
+    let activeWhyStep = 5; // Default show full chain on Slide 4, interactive click toggles 1..5
+    let activeSmartPillar = 0; // Highlighted SMART pillar on Slide 7
+    let checklistState = [false, false, false, false]; // Interactive checklist on Slide 10
+
+    // 10-Second Scan Timer State
+    let scanTimerInterval = null;
+    let scanSecondsLeft = 10.0;
+    let isScanRunning = false;
+
+    // 10-SLIDE STRUCTURED DATA (Strictly adhering to <10 words per bullet, 3-4 bullets max)
+    const slides = [
+      {
+        id: 1,
+        category: "Executive Kickoff",
+        title: "Stop the Bleeding: Permanent KPI Fixes",
+        subtitle: "Root Cause Analysis & SMART Action Planning for Frontline Leaders",
+        cue: "Set an authoritative, zero-fluff tone. Acknowledge Friday WBR stress.",
+        notes: `
+          <p>"Welcome, team. Let’s be honest—every single one of us has had to explain a red KPI to an Operations Manager at 4:00 PM on a Friday.</p>
+          <p>Today isn't about corporate theory or academic charts. It’s about how you stop putting band-aids on bleeding metrics like <strong>CSAT, AHT, SLA, and FCR</strong>.</p>
+          <p>Notice our 10-second rule on every slide today: if a busy Team Lead can't scan it in 10 seconds on the floor, it doesn't belong in your RCA. Let’s dive in."</p>
+        `,
+        render: () => `
+          <div class="flex-1 bg-[#0F172A] text-white p-8 sm:p-12 lg:p-16 flex flex-col justify-between relative overflow-hidden">
+            <!-- Decorative subtle operational grid accents -->
+            <div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-blue-600/20 blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-emerald-500/15 blur-3xl pointer-events-none"></div>
+
+            <!-- Top Operational Tag -->
+            <div class="flex flex-wrap items-center justify-between gap-3 z-10">
+              <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-600/20 border border-blue-500/40 text-blue-300 text-xs font-bold tracking-wider uppercase">
+                <i class="fa-solid fa-shield-halved text-blue-400"></i> Frontline Operations Playbook
+              </span>
+              <span class="font-mono text-xs text-slate-400">MODULE 01 &bull; FLOOR EXECUTION</span>
+            </div>
+
+            <!-- Main Punchy Title -->
+            <div class="my-8 sm:my-10 z-10 max-w-4xl">
+              <div class="w-16 h-1.5 bg-amber-500 rounded-full mb-6"></div>
+              <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] text-white mb-5">
+                Stop the Bleeding:<br/>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-emerald-400">
+                  Permanent KPI Fixes
+                </span>
+              </h1>
+              <p class="text-lg sm:text-2xl text-slate-300 font-medium max-w-2xl leading-snug">
+                Root Cause Analysis &amp; SMART Action Planning for Frontline Leaders
+              </p>
+            </div>
+
+            <!-- Crisp BPO Operational Badges -->
+            <div class="z-10 pt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
+              <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                <div class="px-3.5 py-2 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                  <span class="font-mono text-xs sm:text-sm font-bold text-white">CSAT</span>
+                  <span class="text-xs text-slate-400">Quality</span>
+                </div>
+                <div class="px-3.5 py-2 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+                  <span class="font-mono text-xs sm:text-sm font-bold text-white">AHT</span>
+                  <span class="text-xs text-slate-400">Efficiency</span>
+                </div>
+                <div class="px-3.5 py-2 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                  <span class="font-mono text-xs sm:text-sm font-bold text-white">SLA</span>
+                  <span class="text-xs text-slate-400">Speed</span>
+                </div>
+                <div class="px-3.5 py-2 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                  <span class="font-mono text-xs sm:text-sm font-bold text-white">FCR</span>
+                  <span class="text-xs text-slate-400">Resolution</span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-400 font-medium">Built for Call Center &amp; Back-Office Supervisors</p>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: 2,
+        category: "The Trap",
+        title: "The Cost of Band-Aid Fixes",
+        cue: "Challenge the habit of writing 'coached agent' on every RCA.",
+        notes: `
+          <p>"If your action plan starts with 'I will remind my team in the pre-shift huddle to watch their hold times,' you’re putting a band-aid on a broken bone.</p>
+          <p>Huddle reminders give you a 48-hour sugar rush. Everyone tries harder on Tuesday, and by Thursday afternoon your AHT and repeat contacts are right back in the red.</p>
+          <p>Worse, every repeat error burns precious shrinkage pulling agents off the phones for re-coaching. Stop coaching symptoms."</p>
+        `,
+        render: () => `
+          <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-amber-600">02 &bull; Operational Reality</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 mt-1">The Cost of Band-Aid Fixes</h2>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> The Reminder Trap
+              </span>
+            </div>
+
+            <!-- Main Visual Cycle + 3 Concise Bullets -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-auto py-6 items-center">
+              <!-- Visual Cycle Diagram (Left 6 Cols) -->
+              <div class="lg:col-span-6 bg-slate-900 rounded-2xl p-6 text-white shadow-lg border border-slate-800">
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-xs font-mono uppercase tracking-wider text-amber-400 font-bold">48-Hour Metric Relapse Loop</span>
+                  <span class="text-xs text-slate-400">KPI Trend</span>
+                </div>
+
+                <!-- SVG Chart showing Spike & Crash -->
+                <svg viewBox="0 0 360 150" class="w-full h-36 overflow-visible">
+                  <!-- Target Threshold Line -->
+                  <line x1="10" y1="35" x2="350" y2="35" stroke="#10B981" stroke-width="1.5" stroke-dasharray="5,5" />
+                  <text x="275" y="27" fill="#10B981" font-size="10" font-family="JetBrains Mono" font-weight="bold">SLA TARGET</text>
+
+                  <!-- Metric Curve: Dip -> Huddle Spike -> Relapse -->
+                  <path d="M 15 115 L 85 115 L 135 45 L 185 48 L 245 122 L 345 128"
+                        fill="none" stroke="#F59E0B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+
+                  <!-- Points -->
+                  <circle cx="85" cy="115" r="5" fill="#EF4444" />
+                  <text x="45" y="136" fill="#FCA5A5" font-size="10" font-weight="bold">1. KPI Drops</text>
+
+                  <circle cx="155" cy="46" r="5" fill="#3B82F6" />
+                  <text x="112" y="22" fill="#93C5FD" font-size="10" font-weight="bold">2. Huddle Reminder</text>
+
+                  <circle cx="245" cy="122" r="6" fill="#EF4444" />
+                  <text x="215" y="142" fill="#FCA5A5" font-size="10" font-weight="bold">3. Relapse (48h)</text>
+                </svg>
+              </div>
+
+              <!-- 3 Scannable Bullets (<10 words each) (Right 6 Cols) -->
+              <div class="lg:col-span-6 space-y-4">
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-4">
+                  <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 font-bold">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-extrabold text-slate-900">Huddle reminders fade in 48 hours</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">Memory cannot override a broken daily workflow.</p>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-4">
+                  <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0 font-bold">
+                    <i class="fa-solid fa-arrow-trend-down"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-extrabold text-slate-900">Repeat errors drain shrinkage &amp; CSAT</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">Offline re-coaching pulls productive agents off queue.</p>
+                  </div>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-4">
+                  <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold">
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-extrabold text-slate-900">Treating symptoms guarantees metric relapse</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">Same root issue triggers next week’s escalation.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Takeaway Bar -->
+            <div class="px-4 py-3 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-semibold flex items-center justify-between">
+              <span><i class="fa-solid fa-ban text-rose-400 mr-2"></i>Rule of Thumb: "Remind team" is never a valid root-cause fix.</span>
+              <span class="font-mono text-slate-400 hidden sm:inline">SLIDE 02</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: 3,
+        category: "Diagnosis",
+        title: "Symptom vs. Root Cause",
+        cue: "Use the Iceberg metaphor: Ops Managers see the tip; TLs must fix below the waterline.",
+        notes: `
+          <p>"Look at this split screen. Above the waterline is what triggers the red alert on your WBR dashboard: High AHT and Repeat Calls.</p>
+          <p>If you stop above the waterline, you blame the agent for talking too slowly. When you dive below the surface onto the floor, you find out the Knowledge Base search bar is broken and the billing toggle is missing.</p>
+          <p>You can't coach an agent out of a broken tool. Fix below the waterline."</p>
+        `,
+        render: () => `
+          <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-blue-600">03 &bull; Floor Diagnosis</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 mt-1">Symptom vs. Root Cause</h2>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold">
+                <i class="fa-solid fa-water mr-1"></i> Surface vs. Floor Reality
+              </span>
+            </div>
+
+            <!-- Split-Screen Iceberg / Surface vs Floor Reality Comparison -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto py-6">
+              <!-- ABOVE WATERLINE: SYMPTOM -->
+              <div class="rounded-2xl border-2 border-amber-300 bg-amber-50/60 p-6 flex flex-col justify-between relative">
+                <div>
+                  <div class="flex items-center justify-between mb-4">
+                    <span class="px-3 py-1 rounded-lg bg-amber-500 text-white text-xs font-extrabold uppercase tracking-wider">
+                      Above Surface &bull; Symptom
+                    </span>
+                    <i class="fa-solid fa-eye text-amber-600 text-xl"></i>
+                  </div>
+                  <h3 class="text-xl font-black text-slate-900 mb-4">What Appears on WBR Dashboards</h3>
+                  <ul class="space-y-3">
+                    <li class="p-3.5 rounded-xl bg-white border border-amber-200 shadow-sm flex items-center gap-3">
+                      <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+                      <span class="font-bold text-slate-800 text-sm sm:text-base">High AHT (+45s over target)</span>
+                    </li>
+                    <li class="p-3.5 rounded-xl bg-white border border-amber-200 shadow-sm flex items-center gap-3">
+                      <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+                      <span class="font-bold text-slate-800 text-sm sm:text-base">Repeat calls jump 14%</span>
+                    </li>
+                  </ul>
+                </div>
+                <p class="mt-4 text-xs font-bold text-amber-800 uppercase tracking-wide">
+                  <i class="fa-solid fa-circle-info mr-1"></i> Visible KPI dip — NOT the fixable cause
+                </p>
+              </div>
+
+              <!-- BELOW WATERLINE: ROOT CAUSE -->
+              <div class="rounded-2xl border-2 border-blue-600 bg-[#0F172A] text-white p-6 flex flex-col justify-between shadow-xl">
+                <div>
+                  <div class="flex items-center justify-between mb-4">
+                    <span class="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-extrabold uppercase tracking-wider">
+                      Below Waterline &bull; Root Cause
+                    </span>
+                    <i class="fa-solid fa-magnifying-glass-chart text-emerald-400 text-xl"></i>
+                  </div>
+                  <h3 class="text-xl font-black text-white mb-4">What Happens on the Floor</h3>
+                  <ul class="space-y-3">
+                    <li class="p-3.5 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center gap-3">
+                      <i class="fa-solid fa-check text-emerald-400 shrink-0"></i>
+                      <span class="font-bold text-slate-100 text-sm sm:text-base">Broken KB search forces manual hunting</span>
+                    </li>
+                    <li class="p-3.5 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center gap-3">
+                      <i class="fa-solid fa-check text-emerald-400 shrink-0"></i>
+                      <span class="font-bold text-slate-100 text-sm sm:text-base">Missing billing toggle causes incomplete credits</span>
+                    </li>
+                  </ul>
+                </div>
+                <p class="mt-4 text-xs font-bold text-emerald-400 uppercase tracking-wide">
+                  <i class="fa-solid fa-wrench mr-1"></i> System/Process failure — Fix this permanently
+                </p>
+              </div>
+            </div>
+
+            <!-- Bottom Takeaway -->
+            <div class="px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-between">
+              <span><i class="fa-solid fa-compass text-blue-600 mr-2"></i>Diagnostic Rule: Never stop at the metric—find what slowed or blocked the agent.</span>
+              <span class="font-mono text-slate-400 hidden sm:inline">SLIDE 03</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: 4,
+        category: "Drill-Down Tool",
+        title: "The 5 Whys in Action",
+        cue: "Click through steps 1 to 5 live with your leads to show how you stop at process, not people.",
+        notes: `
+          <p>"Let’s walk through a real BPO drill-down. CSAT dropped 8% on our billing queue this week. Click through the 5 Whys right here on the screen.</p>
+          <p>Why 1: CSAT dropped 8%. Why 2: Agents quoted the wrong refund timelines. Why 3: They used an outdated CRM macro. Why 4: The new policy wasn't pinned in the CRM. Why 5: There is zero KB ownership handoff between Ops and Training.</p>
+          <p>Notice we didn't fire or write up a single agent—we fixed the broken handoff that set them up to fail."</p>
+        `,
+        render: () => {
+          const whys = [
+            { step: 1, label: "WHY 1 (Symptom)", text: "CSAT dropped 8% on billing queue", color: "bg-rose-500", badge: "KPI Alert" },
+            { step: 2, label: "WHY 2 (Behavior)", text: "Agents gave wrong refund timelines", color: "bg-amber-500", badge: "Call Audit" },
+            { step: 3, label: "WHY 3 (Trigger)", text: "Agents used outdated CRM macro", color: "bg-amber-600", badge: "Screen Capture" },
+            { step: 4, label: "WHY 4 (Gap)", text: "New policy wasn't pinned in CRM", color: "bg-blue-600", badge: "System Check" },
+            { step: 5, label: "WHY 5 (ROOT CAUSE)", text: "No KB ownership handoff from Ops to Training", color: "bg-emerald-600", badge: "Fixable Root" }
+          ];
+
+          return `
+          <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white">
+            <!-- Header -->
+            <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-4">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-blue-600">04 &bull; Interactive Drill-Down</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 mt-1">The 5 Whys in Action</h2>
+              </div>
+              <!-- Interactive Step Controls -->
+              <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                <span class="text-[11px] font-bold text-slate-500 px-2">Reveal Step:</span>
+                ${[1,2,3,4,5].map(n => `
+                  <button onclick="setWhyStep(${n})"
+                    class="w-7 h-7 rounded-lg text-xs font-extrabold transition cursor-pointer ${activeWhyStep >= n ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-600 hover:bg-slate-200'}">
+                    ${n}
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Interactive 5-Step Chain -->
+            <div class="my-auto py-4 space-y-2.5">
+              ${whys.map(item => {
+                const isVisible = item.step <= activeWhyStep;
+                const isRoot = item.step === 5;
+                return `
+                  <div onclick="setWhyStep(${item.step})"
+                    class="cursor-pointer transition-all duration-300 rounded-2xl p-3.5 sm:px-5 border flex items-center justify-between gap-3
+                    ${isVisible
+                      ? (isRoot ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20 shadow-md' : 'bg-slate-50 border-slate-200 hover:border-blue-400')
+                      : 'bg-slate-100/50 border-dashed border-slate-300 opacity-45'}">
+                    <div class="flex items-center gap-3 sm:gap-4">
+                      <span class="px-2.5 py-1 rounded-lg ${isVisible ? item.color : 'bg-slate-400'} text-white font-mono text-xs font-bold shrink-0">
+                        ${item.label}
+                      </span>
+                      <span class="font-extrabold text-sm sm:text-lg ${isRoot && isVisible ? 'text-emerald-950' : 'text-slate-900'}">
+                        ${isVisible ? item.text : 'Click to drill deeper...'}
+                      </span>
+                    </div>
+                    <span class="hidden sm:inline-block text-[11px] font-mono font-bold px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-600 shrink-0">
+                      ${item.badge}
+                    </span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Bottom Takeaway -->
+            <div class="px-4 py-3 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-semibold flex items-center justify-between">
+              <span><i class="fa-solid fa-bullseye text-emerald-400 mr-2"></i>Stop asking "Why" only when you hit a broken process, tool, or policy.</span>
+              <span class="font-mono text-slate-400 hidden sm:inline">SLIDE 04</span>
+            </div>
+          </div>
+        `;
+        }
+      },
+      {
+        id: 5,
+        category: "Categorization",
+        title: "The Fishbone (Ishikawa) for Operations",
+        cue: "Show how the 4Ms/4Ps prevent TLs from blaming agents for IT or Policy failures.",
+        notes: `
+          <p>"When a complex metric like First Contact Resolution (FCR) drops across the whole floor, you need to organize your investigation fast.</p>
+          <p>Use these four operational bones feeding into the FCR Drop head: <strong>People</strong> (new-hire skill gaps), <strong>Process</strong> (broken tier-2 handoffs), <strong>Tools</strong> (CRM latency or stale KB), and <strong>Policy</strong> (rigid credit limits forcing supervisor escalations).</p>
+          <p>Sort your audit findings into these four buckets before writing a single action item."</p>
+        `,
+        render: () => `
+          <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-blue-600">05 &bull; Structured Sorting</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 mt-1">The Fishbone for Operations</h2>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-mono font-bold">
+                4 PILLARS &rarr; KPI HEAD
+              </span>
+            </div>
+
+            <!-- Visual Fishbone Diagram -->
+            <div class="my-auto py-5">
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+                <!-- 4 Operational Bones (Left 8 Cols) -->
+                <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <!-- Bone 1: People -->
+                  <div class="p-4 rounded-2xl bg-blue-50/70 border-2 border-blue-200">
+                    <div class="flex items-center gap-2.5 mb-2">
+                      <span class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
+                        <i class="fa-solid fa-users text-sm"></i>
+                      </span>
+                      <h3 class="font-black text-slate-900 text-base uppercase">1. People</h3>
+                    </div>
+                    <p class="text-sm font-bold text-slate-700">Skill/Will gaps &amp; new-hire ramp</p>
+                  </div>
+
+                  <!-- Bone 2: Process -->
+                  <div class="p-4 rounded-2xl bg-emerald-50/70 border-2 border-emerald-200">
+                    <div class="flex items-center gap-2.5 mb-2">
+                      <span class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                        <i class="fa-solid fa-diagram-project text-sm"></i>
+                      </span>
+                      <h3 class="font-black text-slate-900 text-base uppercase">2. Process</h3>
+                    </div>
+                    <p class="text-sm font-bold text-slate-700">Broken workflows &amp; Tier-2 handoffs</p>
+                  </div>
+
+                  <!-- Bone 3: Tools -->
+                  <div class="p-4 rounded-2xl bg-amber-50/70 border-2 border-amber-200">
+                    <div class="flex items-center gap-2.5 mb-2">
+                      <span class="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center">
+                        <i class="fa-solid fa-laptop-code text-sm"></i>
+                      </span>
+                      <h3 class="font-black text-slate-900 text-base uppercase">3. Tools</h3>
+                    </div>
+                    <p class="text-sm font-bold text-slate-700">CRM latency, dead macros, &amp; KB</p>
+                  </div>
+
+                  <!-- Bone 4: Policy -->
+                  <div class="p-4 rounded-2xl bg-purple-50/70 border-2 border-purple-200">
+                    <div class="flex items-center gap-2.5 mb-2">
+                      <span class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center">
+                        <i class="fa-solid fa-scale-balanced text-sm"></i>
+                      </span>
+                      <h3 class="font-black text-slate-900 text-base uppercase">4. Policy</h3>
+                    </div>
+                    <p class="text-sm font-bold text-slate-700">Rigid rules causing escalations</p>
+                  </div>
+                </div>
+
+                <!-- Spine Arrow & Problem Head (Right 4 Cols) -->
+                <div class="lg:col-span-4 flex flex-col lg:flex-row items-center gap-3">
+                  <div class="hidden lg:flex items-center text-slate-400">
+                    <div class="w-8 h-1.5 bg-slate-800 rounded-full"></div>
+                    <i class="fa-solid fa-caret-right text-3xl text-slate-800 -ml-1"></i>
+                  </div>
+                  <div class="w-full p-6 rounded-3xl bg-[#0F172A] text-white border-4 border-rose-500 shadow-xl text-center">
+                    <span class="inline-block px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[11px] font-bold uppercase mb-2">
+                      Problem Head
+                    </span>
+                    <h3 class="text-2xl sm:text-3xl font-black text-white">FCR Drop</h3>
+                    <p class="text-xs text-slate-300 mt-1 font-medium">-9% First Contact Resolution</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Takeaway -->
+            <div class="px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-between">
+              <span><i class="fa-solid fa-filter text-blue-600 mr-2"></i>Floor Rule: 80% of chronic KPI dips live in Process, Tools, or Policy—not People.</span>
+              <span class="font-mono text-slate-400 hidden sm:inline">SLIDE 05</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: 6,
+        category: "Execution Bridge",
+        title: "From RCA to Action",
+        cue: "Emphasize single-point ownership and removing error paths before retraining.",
+        notes: `
+          <p>"Finding the root cause gets you zero credit if your fix dies inside an Excel tracker.</p>
+          <p>Look at the bridge across the top: <strong>Verified Root Cause &rarr; Systemic Fix &rarr; Measurable KPI Lift</strong>.</p>
+          <p>Three non-negotiable rules when crossing this bridge: target the broken process first, assign one named owner per fix, and eliminate the error path in the tool before you waste shrinkage retraining agents."</p>
+        `,
+        render: () => `
+          <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600">06 &bull; Closing the Gap</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 mt-1">From RCA to Action</h2>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+                Execution Bridge
+              </span>
+            </div>
+
+            <!-- Bridge Visual + 3 Concise Bullets -->
+            <div class="my-auto py-5 space-y-6">
+              <!-- 3-Stage Visual Bridge -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                <div class="p-4 rounded-2xl bg-slate-900 text-white border-b-4 border-blue-500 text-center shadow">
+                  <span class="text-[11px] font-mono text-blue-400 font-bold uppercase">Stage 1</span>
+                  <h3 class="text-lg font-black mt-0.5">Verified Root Cause</h3>
+                </div>
+                <div class="p-4 rounded-2xl bg-blue-600 text-white border-b-4 border-amber-400 text-center shadow-lg">
+                  <span class="text-[11px] font-mono text-blue-100 font-bold uppercase">Stage 2 &bull; The Bridge</span>
+                  <h3 class="text-lg font-black mt-0.5">Systemic Fix</h3>
+                </div>
+                <div class="p-4 rounded-2xl bg-emerald-600 text-white border-b-4 border-emerald-900 text-center shadow">
+                  <span class="text-[11px] font-mono text-emerald-100 font-bold uppercase">Stage 3</span>
+                  <h3 class="text-lg font-black mt-0.5">Measurable KPI Lift</h3>
+                </div>
+              </div>
+
+              <!-- 3 Crisp Bullets (<10 words each) -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                  <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 font-black flex items-center justify-center mb-3">1</div>
+                  <h4 class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">
+                    Target the broken process, not just the agent
+                  </h4>
+                </div>
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                  <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 font-black flex items-center justify-center mb-3">2</div>
+                  <h4 class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">
+                    One root cause requires one owned fix
+                  </h4>
+                </div>
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                  <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 font-black flex items-center justify-center mb-3">3</div>
+                  <h4 class="text-base sm:text-lg font-extrabold text-slate-900 leading-snug">
+                    Eliminate the error path before retraining
+                  </h4>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Takeaway -->
+            <div class="px-4 py-3 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-semibold flex items-center justify-between">
+              <span><i class="fa-solid fa-user-check text-amber-400 mr-2"></i>Accountability Law: When "Team Leads" own an action, nobody owns it. Name one person.</span>
+              <span class="font-mono text-slate-400 hidden sm:inline">SLIDE 06</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: 7,
+        category: "Action Standard",
+        title: "SMART Action Plan Framework",
+        cue: "Click each SMART letter card to spotlight how BPO leaders translate theory into floor math.",
+        notes: `
+          <p>"Every supervisor knows what SMART stands for, yet 70% of action plans submitted to Ops Managers fail the test.</p>
+          <p>Here is the BPO floor translation: <strong>Specific</strong> names the exact queue and tool. <strong>Measurable</strong> states the exact delta—like AHT minus 25 seconds. <strong>Achievable</strong> respects your current shrinkage and staffing.</p>
+          <p>If an action item doesn't pass all five gates, rewrite it before your WBR."</p>
+        `,
+        render: () => {
+          const pillars = [
+            { letter: "S", word: "Specific", def: "Exact team, queue, & tool", example: "Billing Tier-1 queue & CRM Refund Macro #12", color: "bg-blue-600" },
+            { letter: "M", word: "Measurable", def: "Target KPI delta (e.g., AHT -25s)", example: "Cut AHT from 410s to 385s; 95% QA pass", color: "bg-indigo-600" },
+            { letter: "A", word: "Achievable", def: "Realistic within current shrinkage", example: "15-min side-by-side audits inside 12% shrinkage", color: "bg-emerald-600" },
+            { letter: "R", word: "Relevant", def: "Directly resolves verified root cause", example: "Eliminates manual refund calculation errors", color: "bg-amber-500" },
+            { letter: "T", word: "Time-bound", def: "Hard deadline & checkpoint dates", example: "Live by Wed 9 AM; audited Fri 3 PM", color: "bg-rose-600" }
+          ];
+          const selected = pillars[activeSmartPillar];
+
+          return `
+          <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-blue-600">07 &bull; Execution Standard</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 mt-1">SMART Action Plan Framework</h2>
+              </div>
+              <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+                Click any pillar to inspect
+              </span>
+            </div>
+
+            <!-- 5 Interactive SMART Cards -->
+            <div class="my-auto py-4 space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                ${pillars.map((p, idx) => {
+                  const isActive = idx === activeSmartPillar;
+                  return `
+                    <button onclick="setSmartPillar(${idx})"
+                      class="text-left p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between
+                      ${isActive ? 'bg-[#0F172A] text-white border-blue-500 shadow-xl -translate-y-1' : 'bg-slate-50 text-slate-900 border-slate-200 hover:border-blue-300'}">
+                      <div>
+                        <span class="w-10 h-10 rounded-xl ${p.color} text-white font-black text-xl flex items-center justify-center mb-3 shadow">
+                          ${p.letter}
+                        </span>
+                        <h3 class="font-black text-base sm:text-lg">${p.word}</h3>
+                      </div>
+                      <p class="text-xs sm:text-sm font-semibold mt-2 leading-snug ${isActive ? 'text-slate-300' : 'text-slate-600'}">
+                        ${p.def}
+                      </p>
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+
+              <!-- Spotlight Floor Example Box -->
+              <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="flex items-center gap-3">
+                  <span class="px-2.5 py-1 rounded-lg ${selected.color} text-white font-mono text-xs font-bold uppercase">
+                    ${selected.word} Example
+                  </span>
+                  <span class="font-extrabold text-slate-900 text-sm sm:text-base">${selected.example}</span>
+                </div>
+                <span class="text-xs font-mono text-blue-700 font-bold">BPO FLOOR STANDARD</span>
+              </div>
+            </div>
+
+            <!-- Bottom Takeaway -->
+            <div class="px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-between">
+              <span><i class="fa-solid fa-check-double text-emerald-600 mr-2"></i>Quality Gate: Missing even one SMART element turns an action plan into wishful thinking.</span>
+              <span class="font-mono text-slate-400 hidden sm:inline">SLIDE 07</span>
+            </div>
+          </div>
+        `;
+        }
+      },
+      {
+        id: 8,
+        category: "Makeover",
+        title: "Bad vs. Good BPO Action Plans",
+        cue: "Contrast weak 'Band-Aid' lines on the left with executive-ready SMART actions on the right.",
+        notes: `
+          <p>"Put these two columns side by side during your next Team Lead calibration.</p>
+          <p>On the left, we have the classic rejected lines: 'Coach team on AHT' and 'Remind agents to check KB.' That tells an Operations Manager zero about how or when the metric will move.</p>
+          <p>Look at the right column: 'Audit top 10 AHT outliers; deploy 1-click macro by Friday' and 'Update KB article #402; verify 100% usage in 5 calls per agent by Wednesday.' That is how leaders run a floor."</p>
+        `,
+        render: () => `
+          <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-blue-600">08 &bull; Before &amp; After</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 mt-1">Bad vs. Good BPO Action Plans</h2>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
+                WBR Ready
+              </span>
+            </div>
+
+            <!-- Side-by-Side Comparison Table -->
+            <div class="my-auto py-4 overflow-x-auto">
+              <table class="w-full text-left border-collapse rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+                <thead>
+                  <tr>
+                    <th class="w-1/2 p-4 bg-rose-600 text-white font-black text-sm sm:text-base uppercase tracking-wide">
+                      <i class="fa-solid fa-circle-xmark mr-2"></i>Weak "Band-Aid" Plan (Reject)
+                    </th>
+                    <th class="w-1/2 p-4 bg-emerald-600 text-white font-black text-sm sm:text-base uppercase tracking-wide">
+                      <i class="fa-solid fa-circle-check mr-2"></i>SMART BPO Plan (Approve)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-sm sm:text-base">
+                  <tr class="bg-white">
+                    <td class="p-4 font-bold text-rose-900 bg-rose-50/40 border-r border-slate-200">
+                      "Coach team on AHT"
+                    </td>
+                    <td class="p-4 font-extrabold text-slate-900 bg-emerald-50/30">
+                      Audit top 10 AHT outliers; deploy 1-click macro by Friday
+                    </td>
+                  </tr>
+                  <tr class="bg-white">
+                    <td class="p-4 font-bold text-rose-900 bg-rose-50/40 border-r border-slate-200">
+                      "Remind agents to check KB"
+                    </td>
+                    <td class="p-4 font-extrabold text-slate-900 bg-emerald-50/30">
+                      Update KB article #402; verify 100% usage in 5 calls/agent by Wed
+                    </td>
+                  </tr>
+                  <tr class="bg-white">
+                    <td class="p-4 font-bold text-rose-900 bg-rose-50/40 border-r border-slate-200">
+                      "Escalate slow CRM to IT"
+                    </td>
+                    <td class="p-4 font-extrabold text-slate-900 bg-emerald-50/30">
+                      Log P2 ticket #884; track latency fix with IT daily at 10 AM
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Bottom Takeaway -->
+            <div class="px-4 py-3 rounded-xl bg-slate-900 text-white text-xs sm:text-sm font-semibold flex items-center justify-between">
+              <span><i class="fa-solid fa-pen-to-square text-amber-400 mr-2"></i>Leader Test: Can another supervisor audit your action item without asking you questions?</span>
+              <span class="font-mono text-slate-400 hidden sm:inline">SLIDE 08</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: 9,
+        category: "Sustain Gains",
+        title: "Sustaining the Fix",
+        cue: "Explain why closing an RCA on Day 1 causes repeat failures in Week 3.",
+        notes: `
+          <p>"Deployment is not completion. Too many supervisors push a macro update on Monday and close the RCA ticket on Tuesday morning.</p>
+          <p>Follow this three-stage audit cadence: <strong>Day 1–3</strong>, run live side-by-side call or ticket audits on your outlier agents. <strong>Week 1</strong>, calibrate with QA on that exact fixed step so scoring aligns.</p>
+          <p><strong>Week 2–4</strong>, track the KPI trend line and only close the loop after two consecutive green weeks."</p>
+        `,
+        render: () => `
+          <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-white">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600">09 &bull; Audit Cadence</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-slate-900 mt-1">Sustaining the Fix</h2>
+              </div>
+              <span class="px-3 py-1 rounded-full bg-slate-900 text-emerald-400 text-xs font-mono font-bold">
+                30-DAY LOCK-IN LOOP
+              </span>
+            </div>
+
+            <!-- 3-Stage Timeline / Audit Cadence -->
+            <div class="my-auto py-6">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-5 relative">
+                <!-- Milestone 1 -->
+                <div class="rounded-2xl bg-slate-50 border-2 border-blue-500 p-6 flex flex-col justify-between shadow-sm">
+                  <div>
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="px-3 py-1 rounded-full bg-blue-600 text-white font-mono text-xs font-bold">
+                        DAY 1–3
+                      </span>
+                      <i class="fa-solid fa-headphones text-blue-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-900 mb-2">Live Floor Verification</h3>
+                    <p class="text-sm sm:text-base font-bold text-slate-700 leading-snug">
+                      Side-by-side live call/ticket audits on outlier agents
+                    </p>
+                  </div>
+                  <div class="mt-5 pt-3 border-t border-slate-200 text-xs font-mono font-bold text-blue-700">
+                    GATE 1: TOOL &amp; BEHAVIOR LIVE
+                  </div>
+                </div>
+
+                <!-- Milestone 2 -->
+                <div class="rounded-2xl bg-slate-50 border-2 border-amber-500 p-6 flex flex-col justify-between shadow-sm">
+                  <div>
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="px-3 py-1 rounded-full bg-amber-500 text-white font-mono text-xs font-bold">
+                        WEEK 1
+                      </span>
+                      <i class="fa-solid fa-sliders text-amber-600 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-900 mb-2">QA Calibration Sync</h3>
+                    <p class="text-sm sm:text-base font-bold text-slate-700 leading-snug">
+                      Targeted QA calibration on the exact fixed step
+                    </p>
+                  </div>
+                  <div class="mt-5 pt-3 border-t border-slate-200 text-xs font-mono font-bold text-amber-700">
+                    GATE 2: 95%+ AUDIT COMPLIANCE
+                  </div>
+                </div>
+
+                <!-- Milestone 3 -->
+                <div class="rounded-2xl bg-[#0F172A] text-white border-2 border-emerald-500 p-6 flex flex-col justify-between shadow-xl">
+                  <div>
+                    <div class="flex items-center justify-between mb-4">
+                      <span class="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 font-mono text-xs font-extrabold">
+                        WEEK 2–4
+                      </span>
+                      <i class="fa-solid fa-chart-line text-emerald-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-white mb-2">Trend Lock &amp; Closure</h3>
+                    <p class="text-sm sm:text-base font-bold text-slate-200 leading-snug">
+                      Track KPI trend &amp; close loop after 2 green weeks
+                    </p>
+                  </div>
+                  <div class="mt-5 pt-3 border-t border-slate-800 text-xs font-mono font-bold text-emerald-400">
+                    GATE 3: PERMANENT RCA SIGN-OFF
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Takeaway -->
+            <div class="px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 text-xs sm:text-sm font-bold flex items-center justify-between">
+              <span><i class="fa-solid fa-lock text-emerald-600 mr-2"></i>Closure Rule: Never close an RCA until the KPI holds green for 14 consecutive days.</span>
+              <span class="font-mono text-slate-400 hidden sm:inline">SLIDE 09</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: 10,
+        category: "Pre-Flight Gate",
+        title: "Leader's Quick-Reference Checklist",
+        cue: "Have Team Leads click all 4 boxes interactively as a commitment before closing the session.",
+        notes: `
+          <p>"Before you send your next RCA tracker to your Operations Manager, run through these four gatekeeper questions right here on the screen—click each one to check it off.</p>
+          <p>1. Did I verify data, not assumptions? 2. Did I reach a process or tool root cause? 3. Does my action plan pass all 5 SMART tests? 4. Are audit dates locked on my calendar?</p>
+          <p>If all four boxes are green, hit send with confidence. Go own your floor!"</p>
+        `,
+        render: () => {
+          const items = [
+            "1. Did I verify data, not assumptions?",
+            "2. Did I reach a process/tool root cause?",
+            "3. Does my action plan pass all 5 SMART tests?",
+            "4. Are audit dates locked on my calendar?"
+          ];
+          const completedCount = checklistState.filter(Boolean).length;
+
+          return `
+          <div class="flex-1 p-6 sm:p-10 lg:p-12 flex flex-col justify-between bg-[#0F172A] text-white">
+            <!-- Header -->
+            <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-800 pb-4">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-400">10 &bull; Pre-Submission Gatekeeper</span>
+                <h2 class="text-2xl sm:text-4xl font-black text-white mt-1">Leader's Quick-Reference Checklist</h2>
+              </div>
+              <div class="px-3.5 py-1.5 rounded-full bg-slate-800 border border-slate-700 font-mono text-xs font-bold text-emerald-400">
+                ${completedCount} / 4 VERIFIED
+              </div>
+            </div>
+
+            <!-- Interactive Clickable 4-Step Checklist -->
+            <div class="my-auto py-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${items.map((label, idx) => {
+                const checked = checklistState[idx];
+                return `
+                  <button onclick="toggleChecklistItem(${idx})"
+                    class="text-left p-5 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4
+                    ${checked
+                      ? 'bg-emerald-500/15 border-emerald-400 text-white shadow-lg shadow-emerald-500/10'
+                      : 'bg-slate-800/80 border-slate-700 text-slate-200 hover:border-blue-500'}">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition
+                      ${checked ? 'bg-emerald-500 text-slate-950' : 'bg-slate-900 border border-slate-600 text-slate-400'}">
+                      <i class="fa-solid ${checked ? 'fa-check text-base font-black' : 'fa-square text-xs'}"></i>
+                    </div>
+                    <span class="text-base sm:text-lg font-extrabold leading-snug">${label}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Bottom Status Banner -->
+            <div class="px-5 py-3.5 rounded-2xl ${completedCount === 4 ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-200 border border-slate-700'} text-xs sm:text-sm font-extrabold flex items-center justify-between transition-colors">
+              <span>
+                ${completedCount === 4
+                  ? '<i class="fa-solid fa-rocket mr-2"></i>READY FOR OPS MANAGER REVIEW — All 4 Quality Gates Passed!'
+                  : '<i class="fa-solid fa-hand-pointer text-amber-400 mr-2"></i>Click all 4 gates above before submitting your RCA to Operations.'}
+              </span>
+              <button onclick="resetChecklist()" class="text-xs underline opacity-80 hover:opacity-100 cursor-pointer">Reset</button>
+            </div>
+          </div>
+        `;
+        }
+      }
+    ];
+
+    // Render Current Slide
+    function renderSlide() {
+      const slide = slides[currentSlideIndex];
+      const canvas = document.getElementById('slideCanvas');
+
+      // Trigger subtle re-entry animation
+      canvas.classList.remove('slide-card');
+      void canvas.offsetWidth; // Force reflow
+      canvas.classList.add('slide-card');
+
+      canvas.innerHTML = slide.render();
+
+      // Update Header / Footer Metadata
+      document.getElementById('slideCounter').textContent = `${slide.id} / ${slides.length}`;
+      document.getElementById('slideCategoryTag').textContent = slide.category;
+
+      // Update Speaker Notes
+      document.getElementById('trainerCueText').textContent = slide.cue;
+      document.getElementById('speakerNotesBody').innerHTML = slide.notes;
+
+      // Update Prev/Next Buttons
+      document.getElementById('prevBtn').disabled = currentSlideIndex === 0;
+      document.getElementById('nextBtn').disabled = currentSlideIndex === slides.length - 1;
+
+      // Render Clickable Dots
+      const dotsContainer = document.getElementById('slideDots');
+      dotsContainer.innerHTML = slides.map((s, idx) => `
+        <button onclick="goToSlide(${idx})" title="Slide ${s.id}: ${s.title}"
+          class="h-2.5 rounded-full transition-all cursor-pointer ${idx === currentSlideIndex ? 'w-8 bg-blue-500' : 'w-2.5 bg-slate-700 hover:bg-slate-500'}">
+        </button>
+      `).join('');
+    }
+
+    // Navigation Functions
+    function nextSlide() {
+      if (currentSlideIndex < slides.length - 1) {
+        currentSlideIndex++;
+        renderSlide();
+        if (isScanRunning) restartScanTimer();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        renderSlide();
+        if (isScanRunning) restartScanTimer();
+      }
+    }
+
+    function goToSlide(index) {
+      currentSlideIndex = index;
+      renderSlide();
+      if (isScanRunning) restartScanTimer();
+    }
+
+    // Slide-Specific Interactive Controls
+    function setWhyStep(step) {
+      activeWhyStep = step;
+      renderSlide();
+    }
+
+    function setSmartPillar(idx) {
+      activeSmartPillar = idx;
+      renderSlide();
+    }
+
+    function toggleChecklistItem(idx) {
+      checklistState[idx] = !checklistState[idx];
+      renderSlide();
+    }
+
+    function resetChecklist() {
+      checklistState = [false, false, false, false];
+      renderSlide();
+    }
+
+    // Toggle Speaker Notes Drawer
+    function toggleSpeakerNotes() {
+      speakerNotesOpen = !speakerNotesOpen;
+      const panel = document.getElementById('speakerNotesPanel');
+      const btn = document.getElementById('notesToggleBtn');
+      if (speakerNotesOpen) {
+        panel.classList.remove('hidden');
+        panel.classList.add('flex');
+        btn.classList.add('bg-blue-600', 'text-white');
+        btn.classList.remove('bg-slate-800', 'text-slate-300');
+      } else {
+        panel.classList.add('hidden');
+        panel.classList.remove('flex');
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('bg-slate-800', 'text-slate-300');
+      }
+    }
+
+    // 10-Second Scan Timer Logic
+    function toggleScanTimer() {
+      if (isScanRunning) {
+        stopScanTimer();
+      } else {
+        startScanTimer();
+      }
+    }
+
+    function startScanTimer() {
+      isScanRunning = true;
+      scanSecondsLeft = 10.0;
+      const wrap = document.getElementById('scanProgressWrap');
+      const bar = document.getElementById('scanProgressBar');
+      const countEl = document.getElementById('scanTimerCount');
+      const labelEl = document.getElementById('scanTimerLabel');
+
+      wrap.classList.remove('hidden');
+      countEl.classList.remove('hidden');
+      labelEl.textContent = "Scanning:";
+      countEl.textContent = "10.0s";
+      bar.style.width = "100%";
+
+      clearInterval(scanTimerInterval);
+      scanTimerInterval = setInterval(() => {
+        scanSecondsLeft = Math.max(0, +(scanSecondsLeft - 0.1).toFixed(1));
+        countEl.textContent = `${scanSecondsLeft.toFixed(1)}s`;
+        bar.style.width = `${(scanSecondsLeft / 10) * 100}%`;
+
+        if (scanSecondsLeft <= 0) {
+          clearInterval(scanTimerInterval);
+          labelEl.textContent = "10s Complete!";
+          countEl.textContent = "PASS";
+          setTimeout(() => {
+            if (isScanRunning) stopScanTimer();
+          }, 1800);
+        }
+      }, 100);
+    }
+
+    function restartScanTimer() {
+      clearInterval(scanTimerInterval);
+      startScanTimer();
+    }
+
+    function stopScanTimer() {
+      isScanRunning = false;
+      clearInterval(scanTimerInterval);
+      document.getElementById('scanProgressWrap').classList.add('hidden');
+      document.getElementById('scanTimerCount').classList.add('hidden');
+      document.getElementById('scanTimerLabel').textContent = "10s Scan Test";
+    }
+
+    // Overview Grid Mode
+    function toggleGridMode() {
+      const modal = document.getElementById('gridModal');
+      const isHidden = modal.classList.contains('hidden');
+      if (isHidden) {
+        const container = document.getElementById('gridContainer');
+        container.innerHTML = slides.map((s, idx) => `
+          <div onclick="selectFromGrid(${idx})"
+            class="p-5 rounded-2xl border transition cursor-pointer flex flex-col justify-between
+            ${idx === currentSlideIndex ? 'bg-blue-600/20 border-blue-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-200 hover:border-slate-600'}">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs font-bold px-2.5 py-0.5 rounded bg-slate-800 text-blue-400">SLIDE ${s.id}</span>
+                <span class="text-[11px] uppercase tracking-wider text-slate-400">${s.category}</span>
+              </div>
+              <h3 class="font-extrabold text-base sm:text-lg text-white mt-2">${s.title}</h3>
+            </div>
+            <p class="text-xs text-slate-400 mt-4 line-clamp-2">${s.cue}</p>
+          </div>
+        `).join('');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function selectFromGrid(idx) {
+      goToSlide(idx);
+      toggleGridMode();
+    }
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    }
+
+    // Keyboard Arrow & Spacebar Navigation
+    document.addEventListener('keydown', (e) => {
+      // Ignore if grid modal is open and user presses Escape
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('gridModal');
+        if (!modal.classList.contains('hidden')) {
+          toggleGridMode();
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        // Prevent spacebar from double-triggering focused buttons
+        if (document.activeElement.tagName !== 'BUTTON') {
+          e.preventDefault();
+          nextSlide();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevSlide();
+      }
+    });
+
+    // Touch Swipe Support for Mobile/Tablet Floor Walkthroughs
+    let touchStartX = 0;
+    let touchEndX = 0;
+    const stageArea = document.getElementById('stageArea');
+
+    stageArea.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    stageArea.addEventListener('touchend', (e) => {
+      touchEndX = e.changedTouches[0].screenX;
+      const diff = touchStartX - touchEndX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) nextSlide();
+        else prevSlide();
+      }
+    }, { passive: true });
+
+    // Initialize Deck on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderSlide();
+    });
+  </script>
+</body>
+</html>
